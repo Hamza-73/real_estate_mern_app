@@ -2,6 +2,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
 
 dotenv.config()
 
@@ -13,6 +14,7 @@ mongoose.connect(process.env.MONGOURI).then(()=>{
 
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 
 app.listen(3000, ()=>{
     console.log("Server running on port 3000")
@@ -20,16 +22,15 @@ app.listen(3000, ()=>{
 
 // CORS options
 const corsOptions = {
-    origin: 'http://localhost:5173', // Replace with your frontend's URL
+    origin: 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-    optionsSuccessStatus: 204,
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     exposedHeaders: 'Authorization',
     maxAge: 3600,
     preflightContinue: false,
-    optionsSuccessStatus: 204,
-  };
+    optionsSuccessStatus: 204,  // Keep only one of these
+};
   
   // Enable CORS with options
   app.use(cors(corsOptions));
