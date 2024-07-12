@@ -72,7 +72,7 @@ module.exports.updateUser = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: "User updated successfully",
-            user: rest
+            rest
         });
 
     } catch (error) {
@@ -85,6 +85,32 @@ module.exports.updateUser = async (req, res, next) => {
 }
 
 
-modeule.exports.delete = async (req,res)=>{
-    
+module.exports.deleteUser = async (req,res)=>{
+    try {
+    if (req.user.id !== req.params.id) {
+        return res.status(401).json({
+            success: false, message: "You can only delete your own account"
+        });
+    }
+    await User.findByIdAndDelete(req.params.id);
+    res.clearCookie("token");
+    return res.status(200).json({success:true,message:"User has been deleted"})
+    } catch (error) {
+        console.log("error in deleting user is ", error)
+        return res.status(500).json({success:false, message:"error deleting user" })
+    }
+}
+
+
+module.exports.signOut = async (req, res, next) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true, 
+        });
+        
+        res.status(200).json({ success: true, message: "logged out successfully" })
+    } catch (error) {
+        console.log("error in logging out", error);
+        next();
+    }
 }

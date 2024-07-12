@@ -40,6 +40,7 @@ export default function Signin() {
       dispatch(signInSuccess(data));
       navigate('/');
     } catch (error) {
+      console.log("error in signinin", error)
       dispatch(signInFailure(error.message));
     }
   };
@@ -51,7 +52,7 @@ export default function Signin() {
         <form className='flex flex-col gap-4' onSubmit={handleSubmit} >
           <input type="email" name="email" id="email" placeholder='Email' className='border p-3 rounded-lg outline-none' onChange={handleChange} required />
           <input type="password" name="password" id="password" placeholder='Password' className='border p-3 rounded-lg outline-none' onChange={handleChange} required />
-          <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">{loading ? "Loading..." : "Sign Up"}</button>
+          <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">{loading ? "Loading..." : "Sign In"}</button>
           <OAuth />
         </form>
         <div className='flex gap-2 mt-5'>

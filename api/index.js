@@ -6,7 +6,12 @@ const cookieParser = require('cookie-parser')
 
 dotenv.config()
 
-mongoose.connect(process.env.MONGOURI).then(()=>{
+// mongoose.connect(process.env.MONGOURI).then(()=>{
+//     console.log("Connetced to Mongo DB")
+// }).catch((err)=>{
+//     console.log(err)
+// })
+mongoose.connect('mongodb://127.0.0.1:27017/mern-estate').then(()=>{
     console.log("Connetced to Mongo DB")
 }).catch((err)=>{
     console.log(err)
@@ -38,8 +43,10 @@ const corsOptions = {
 // ROUTESS
 const userRoutes = require('./routes/user.route')
 const authRoutes = require('./routes/auth.route')
+const listingRoutes = require('./routes/listing.route')
 app.use('/api/user', userRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/listing', listingRoutes)
 
 app.use((err,req,res,next)=>{
     const statusCode = err.statusCode || 500;

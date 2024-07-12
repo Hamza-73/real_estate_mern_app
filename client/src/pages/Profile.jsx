@@ -2,8 +2,16 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
 import { app } from '../firebase'
-import { updateUserFailure, updateUserStart, updateUserSuccess } from '../redux/user/userSlice';
-import axios from 'axios'
+import {
+  updateUserFailure, updateUserStart,
+  updateUserSuccess, userDeleteFailure,
+  userDeleteStart, userDeleteSuccess,
+  userSignOutFailure,
+  userSignOutStart,
+  userSignOutSuccess
+} from '../redux/user/userSlice';
+import {Link} from 'react-router-dom'
+// import axios from 'axios'
 
 export default function Profile() {
 
@@ -22,7 +30,7 @@ export default function Profile() {
   // console.log(formData)
   // console.log(filePerc)
   // console.log(fileError)
-  console.log('cuurent user is ', currentUser._id)
+  console.log('cuurent user is ', currentUser)
 
   useEffect(() => {
     if (file) {
@@ -83,29 +91,69 @@ export default function Profile() {
 
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`http://localhost:3000/api/user/update/${currentUser._id}`, {
+      const res = await fetch(`http://localhost:3000/api/user/update/${currentUser.rest._id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: "include",
-        body: JSON.stringify(updatedFields),
+        credentials:"include",
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log("Response Data:", data);
-
       if (data.success === false) {
         dispatch(updateUserFailure(data.message));
         return;
       }
 
-      dispatch(updateUserSuccess(data.user));
-      setUpdateSuccess(true)
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
     } catch (error) {
-      console.log("Error in updating:", error);
       dispatch(updateUserFailure(error.message));
     }
   };
+
+  const handleUserDelete = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(userDeleteStart());
+      const response = await fetch(`http://localhost:3000/api/user/delete/${currentUser.rest._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await response.json();
+      console.log("data is ", data);
+      if (data.success === false) {
+        dispatch(userDeleteFailure(data.message));
+        return;
+      }
+      dispatch(userDeleteSuccess(data));
+
+    } catch (error) {
+      console.log("error in deleting user", error)
+      dispatch(userDeleteFailure(error.message))
+    }
+
+  }
+
+  const handleSignOut = async (e) =>{
+    e.preventDefault();
+    try {
+      dispatch(userSignOutStart());
+      const response = await fetch(`http://localhost:3000/api/user/logout`, {
+        method: 'GET',
+      });
+      const data = await response.json();
+      if (data.success !== true) {
+        dispatch(userSignOutFailure(data.message));
+        return;
+      }
+      dispatch(userSignOutSuccess(data));
+    }
+    catch(err){
+      console.log("error in sign out", err);
+      dispatch(userSignOutFailure(err.message))
+    }
+  }
 
   return (
     <div className='p-3 max-w-lg mx-auto'>
@@ -115,7 +163,7 @@ export default function Profile() {
         <input type="file" ref={fileRef} hidden accept='image/*' onChange={e => {
           setFile(e.target.files[0])
         }} />
-        <img onClick={() => fileRef.current.click()} src={formData?.avatar || currentUser.avatar} alt="Profile" className='w-24 h-24 rounded-full object-cover cursor-pointer self-center mt-2' />
+        <img onClick={() => fileRef.current.click()} src={formData?.avatar || currentUser.rest.avatar} alt="Profile" className='w-24 h-24 rounded-full object-cover cursor-pointer self-center mt-2' />
         <p className='text-center'>
           {
             fileError ? (
@@ -133,14 +181,17 @@ export default function Profile() {
             )
           }
         </p>
-        <input name="username" type="text" placeholder='username' defaultValue={currentUser.username} className='border p-3 rounded-lg outline-none' id='username' onChange={handleChange} />
-        <input name="email" type="email" placeholder='email' defaultValue={currentUser.email} className='border p-3 rounded-lg outline-none' id='email' onChange={handleChange} />
+        <input name="username" type="text" placeholder='username' defaultValue={currentUser.rest.username} className='border p-3 rounded-lg outline-none' id='username' onChange={handleChange} />
+        <input name="email" type="email" placeholder='email' defaultValue={currentUser.rest.email} className='border p-3 rounded-lg outline-none' id='email' onChange={handleChange} />
         <input name="password" type="password" placeholder='password' className='border p-3 rounded-lg outline-none' id='password' onChange={handleChange} />
-        <button disabled={loading} className="rounded-lg bg-slate-700 p-3 text-white hover:opacity-95 uppercase">{loading ? "Loading.." : "Update"}</button>
+        <button type="submit" disabled={loading} className="rounded-lg bg-slate-700 p-3 text-white hover:opacity-95 uppercase">{loading ? "Loading.." : "Update"}</button>
+      <Link to={"/createListing"} className='bg-green-700 text-white p-3 rounded-lg hover:opacity-95 text-center uppercase'>
+      Create Listing
+      </Link>
       </form>
       <div className='flex justify-between mt-5'>
-        <div className="text-red-700 cursor-pointer">Delete Account</div>
-        <div className="text-green-700 cursor-pointer">Sign Out</div>
+        <div type="button" onClick={handleUserDelete} className="text-red-700 cursor-pointer">Delete Account</div>
+        <div onClick={handleSignOut} className="text-green-700 cursor-pointer">Sign Out</div>
       </div>
       <p className='text-red-700 mt-2'>
         {error ? error : ""}
