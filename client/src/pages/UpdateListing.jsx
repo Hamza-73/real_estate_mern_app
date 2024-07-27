@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   getDownloadURL,
   getStorage,
@@ -7,11 +7,12 @@ import {
 } from 'firebase/storage';
 import { app } from '../firebase';
 import { useSelector } from 'react-redux';
-import {useNavigate} from 'react-router-dom'
+import {useNavigate, useParams} from 'react-router-dom'
 
-export default function CreateListing() {
+export default function updateListing() {
 
   const navigate = useNavigate();
+  const params = useParams();
 
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
@@ -32,6 +33,25 @@ export default function CreateListing() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   // console.log(formData);
+
+  useEffect(()=>{
+    const fetchListing = async ()=>{
+      const listingId = params.listingId;
+      console.log("listingId is ", listingId)
+      const response = await fetch(`http://localhost:3000/api/listing/get/${listingId}`,{
+        method: 'GET',
+      });
+      const data = await response.json();
+      // console.log("data is ", data)
+      if(!data.success){
+        return;
+      }
+      setFormData(data.listing);
+
+    }
+
+    fetchListing();
+  },[])
 
   const handleImageSubmit = (e) => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
@@ -122,7 +142,7 @@ export default function CreateListing() {
       setLoading(true);
       setError(false);
 
-      const response = await fetch(`http://localhost:3000/api/listing/create`, {
+      const response = await fetch(`http://localhost:3000/api/listing/update/${params.listingId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,16 +161,7 @@ export default function CreateListing() {
         return;
       }
       setSuccess(data.message)
-      setFormData({
-        name: '', description: '',
-        address: '', regularPrice: 50,
-        discountPrice: 50, bathrooms: 1,
-        bedrooms: 1, furnished: false,
-        type: 'rent', offer: false,
-        imageUrls: [], userRef: '', parking: false
-      });
-      setFiles([])
-      navigate(`/listing/${data.listing._id}`);
+      navigate(`/listing/${data.updateListing._id}`);
 
     } catch (error) {
       setError(err.message);
@@ -161,7 +172,7 @@ export default function CreateListing() {
   return (
     <main className='p-3 max-w-4xl mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>
-        Create a Listing
+        Update a Listing
       </h1>
       <form onSubmit={handleSubmitListing} className='flex flex-col sm:flex-row gap-4'>
         <div className='flex flex-col gap-4 flex-1'>
@@ -327,7 +338,7 @@ export default function CreateListing() {
               </div>
             ))}
           <button disabled={loading || uploading} className='p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80'>
-            {loading ? 'Creating....' : 'Create Listing'}
+            {loading ? 'Updating....' : 'Update Listing'}
           </button>
           {error && <p className='text-red-700 mt-2 text-sm'>{error}</p>}
           {(!error && success) && <p className='text-green-700 mt-2 text-sm'>{success}</p>}

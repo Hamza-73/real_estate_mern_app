@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const listingSchema = new mongoose.Schema({
-    username: { type: String, require: true },
+    name: { type: String, require: true },
     description: { type: String, require: true },
     address: { type: String, require: true },
     regularPrice: { type: Number, require: true },
@@ -9,6 +9,7 @@ const listingSchema = new mongoose.Schema({
     bathrooms: { type: Number, require: true },
     bedrooms: { type: Number, require: true },
     furnished: { type: Boolean, require: true },
+    parking: { type: Boolean, require: true },
     type: { type: String, require: true },
     offer: { type: Boolean, require: true },
     imageUrls: { type: Array, require: true },

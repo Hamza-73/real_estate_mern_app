@@ -10,7 +10,7 @@ import {
   userSignOutStart,
   userSignOutSuccess
 } from '../redux/user/userSlice';
-import {Link} from 'react-router-dom'
+import { Link } from 'react-router-dom'
 // import axios from 'axios'
 
 export default function Profile() {
@@ -26,11 +26,14 @@ export default function Profile() {
     username: "", email: "", password: "", avatar: ""
   });
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [listingError, setListingError] = useState(false);
+  const [userListings, setuserListings] = useState([])
 
   // console.log(formData)
   // console.log(filePerc)
   // console.log(fileError)
-  console.log('cuurent user is ', currentUser)
+  // console.log("user listing is", userListings)
+  // console.log('cuurent user is ', currentUser)
 
   useEffect(() => {
     if (file) {
@@ -96,7 +99,7 @@ export default function Profile() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials:"include",
+        credentials: "include",
         body: JSON.stringify(formData),
       });
       const data = await res.json();
@@ -135,7 +138,7 @@ export default function Profile() {
 
   }
 
-  const handleSignOut = async (e) =>{
+  const handleSignOut = async (e) => {
     e.preventDefault();
     try {
       dispatch(userSignOutStart());
@@ -149,9 +152,47 @@ export default function Profile() {
       }
       dispatch(userSignOutSuccess(data));
     }
-    catch(err){
+    catch (err) {
       console.log("error in sign out", err);
       dispatch(userSignOutFailure(err.message))
+    }
+  }
+
+  const handleShowListings = async (e) => {
+    e.preventDefault();
+    try {
+      setListingError(false);
+      const response = await fetch(`http://localhost:3000/api/user/listings/${currentUser.rest._id}`, {
+        method: 'GET',
+        credentials: "include"
+      });
+      const data = await response.json();
+      console.log("listings are ", data);
+      if (!data.success) {
+        setListingError(true);
+        return;
+      }
+      setuserListings(data.listings);
+    } catch (error) {
+      setListingError(true);
+    }
+  }
+
+  const handleListingDelete = async (id)=>{
+    try {
+      const response = await fetch(`http://localhost:3000/api/listing/delete/${id}`,{
+        method: 'DELETE',
+        credentials: "include"
+      });
+      const data = await response.json();
+      console.log("listing deleted", data);
+      if(data.success){
+        setuserListings(
+          prev => prev.filter(listing=>listing._id !== id)
+        );
+      }
+    } catch (error) {
+      
     }
   }
 
@@ -185,9 +226,9 @@ export default function Profile() {
         <input name="email" type="email" placeholder='email' defaultValue={currentUser.rest.email} className='border p-3 rounded-lg outline-none' id='email' onChange={handleChange} />
         <input name="password" type="password" placeholder='password' className='border p-3 rounded-lg outline-none' id='password' onChange={handleChange} />
         <button type="submit" disabled={loading} className="rounded-lg bg-slate-700 p-3 text-white hover:opacity-95 uppercase">{loading ? "Loading.." : "Update"}</button>
-      <Link to={"/createListing"} className='bg-green-700 text-white p-3 rounded-lg hover:opacity-95 text-center uppercase'>
-      Create Listing
-      </Link>
+        <Link to={"/createListing"} className='bg-green-700 text-white p-3 rounded-lg hover:opacity-95 text-center uppercase'>
+          Create Listing
+        </Link>
       </form>
       <div className='flex justify-between mt-5'>
         <div type="button" onClick={handleUserDelete} className="text-red-700 cursor-pointer">Delete Account</div>
@@ -199,6 +240,31 @@ export default function Profile() {
       <p className='text-green-700 mt-2'>
         {updateSuccess ? "Updated Successfully!" : ""}
       </p>
+      <button onClick={handleShowListings} className="text-green-700 w-full">Show Listings</button>
+      {
+        listingError && <p className="text-red-700 mt-5">Error in Fetching Listings</p>
+      }
+      {
+        userListings && userListings.length > 0 &&
+        <div className='flex flex-col gap-4'>
+          <h1 className="text-center semi-bold text-2xl mt-7">Your Listings</h1>
+          {userListings.map((listing) => (
+            <div key={listing._id} className='border p-3 rounded-lg flex justify-between items-center gap-4'>
+              <Link to={`/listing/${listing._id}`}>
+                <img src={listing.imageUrls[0]} alt="listing cover" className='h-16 w-16 object-contain' />
+              </Link>
+              <Link className='flex-1 text-slate-700 font-semibold hover:underline truncate' to={`/listing/${listing._id}`}>
+                <p>{listing.name}</p>
+              </Link>
+              <div className="flex flex-col">
+                <button onClick={()=>handleListingDelete(listing._id)} className="text-red-700 uppercase">delete</button>
+               <Link to={`/updateListing/${listing._id}`}><button className="text-green-700 uppercase">edit</button></Link> 
+              </div>
+            </div>
+          ))}
+        </div>
+      }
+
     </div>
   )
 }
