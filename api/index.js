@@ -6,16 +6,16 @@ const cookieParser = require('cookie-parser')
 
 dotenv.config()
 
-// mongoose.connect(process.env.MONGOURI).then(()=>{
-//     console.log("Connetced to Mongo DB")
-// }).catch((err)=>{
-//     console.log(err)
-// })
-mongoose.connect('mongodb://127.0.0.1:27017/mern-estate').then(()=>{
+mongoose.connect(process.env.MONGOURI).then(()=>{
     console.log("Connetced to Mongo DB")
 }).catch((err)=>{
     console.log(err)
 })
+// mongoose.connect('mongodb://127.0.0.1:27017/mern-estate').then(()=>{
+//     console.log("Connetced to Mongo DB")
+// }).catch((err)=>{
+//     console.log(err)
+// })
 
 const app = express()
 app.use(express.json())
