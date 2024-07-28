@@ -29,15 +29,23 @@ app.listen(3000, ()=>{
 
 // CORS options
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: function (origin, callback) {
+        const allowedOrigins = ['http://localhost:5173', 'https://real-estate-mern-app-gamma.vercel.app'];
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     exposedHeaders: 'Authorization',
     maxAge: 3600,
     preflightContinue: false,
-    optionsSuccessStatus: 204,  // Keep only one of these
+    optionsSuccessStatus: 204,
 };
+
   
   // Enable CORS with options
   app.use(cors(corsOptions));
