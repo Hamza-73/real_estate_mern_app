@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
-
+const path = require('path')
 dotenv.config()
 
 mongoose.connect(process.env.MONGOURI).then(()=>{
@@ -20,6 +20,8 @@ mongoose.connect(process.env.MONGOURI).then(()=>{
 const app = express()
 app.use(express.json())
 app.use(cookieParser())
+
+const __dirname = path.resolve();
 
 app.listen(3000, ()=>{
     console.log("Server running on port 3000")
@@ -47,6 +49,13 @@ const listingRoutes = require('./routes/listing.route')
 app.use('/api/user', userRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/listing', listingRoutes)
+
+app.use(express.static(path.join(__dirname, '/client/dist')))
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+  })
+  
 
 app.use((err,req,res,next)=>{
     const statusCode = err.statusCode || 500;
